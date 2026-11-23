@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathSolver PRO v5.2 — Рабочая версия</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%234f46e5'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3Eπ%3C/text%3E%3C/svg%3E">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+    --primary: #4f46e5; --primary-light: #6366f1; --secondary: #06b6d4;
+    --accent: #f59e0b; --success: #10b981; --danger: #ef4444;
+    --darker: #020617; --card: rgba(30, 41, 59, 0.6); --text: #f1f5f9;
+    --text-muted: #94a3b8; --border: rgba(99, 102, 241, 0.2); --input-bg: rgba(2, 6, 23, 0.7);
+}
+body.light {
+    --darker: #f1f5f9; --card: rgba(255, 255, 255, 0.8); --text: #0f172a;
+    --text-muted: #64748b; --border: rgba(79, 70, 229, 0.3); --input-bg: rgba(255, 255, 255, 0.9);
+}
+body {
+    font-family: 'Segoe UI', 'Arial', sans-serif; background: var(--darker); color: var(--text);
+    min-height: 100vh; overflow-x: hidden; line-height: 1.6; transition: background 0.3s, color 0.3s;
+}
+body::before {
+    content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.15), transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.12), transparent 40%);
+    z-index: 0; pointer-events: none;
+}
+body.light::before {
+    background: radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.08), transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.06), transparent 40%);
+}
+.container { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 20px 20px 60px; }
+header {
+    text-align: center; margin-bottom: 25px; padding: 15px 0; position: relative;
+    display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;
+}
+.brand-logo { width: 50px; height: 50px; flex-shrink: 0; transition: transform 0.4s ease; filter: drop-shadow(0 4px 10px rgba(79, 70, 229, 0.4)); }
+.brand-logo:hover { transform: rotate(-10deg) scale(1.1); }
+.header-text { text-align: left; }
+header h1 {
+    font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900; letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--primary-light), var(--secondary), var(--accent));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 2px; line-height: 1.2;
+}
+header p { color: var(--text-muted); font-size: 0.9rem; }
+.top-controls { position: absolute; top: 15px; right: 0; display: flex; gap: 8px; }
+.icon-btn {
+    width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); cursor: pointer; font-size: 1.2rem;
+    display: flex; align-items: center; justify-content: center; transition: all 0.25s; backdrop-filter: blur(10px);
+}
+.icon-btn:hover { background: var(--primary); color: #fff; transform: translateY(-2px); }
+.tabs {
+    display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 25px;
+    background: var(--card); padding: 8px; border-radius: 16px; border: 1px solid var(--border); backdrop-filter: blur(10px);
+}
+.tab-btn {
+    flex: 1 1 auto; min-width: 100px; padding: 10px 14px; background: transparent; border: none;
+    color: var(--text-muted); font-size: 0.85rem; font-weight: 600; border-radius: 10px;
+    cursor: pointer; transition: all 0.3s; font-family: inherit;
+}
+.tab-btn:hover { color: var(--text); background: rgba(99, 102, 241, 0.15); }
+.tab-btn.active { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4); }
+.panel { display: none; animation: fadeIn 0.4s ease-out; }
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    padding: 25px; backdrop-filter: blur(15px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+.card h2 { font-size: 1.3rem; margin-bottom: 6px; color: var(--secondary); letter-spacing: 1px; }
+.card .hint { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 18px; }
+.card .hint code { background: rgba(99, 102, 241, 0.15); padding: 2px 8px; border-radius: 6px; color: var(--primary-light); font-family: 'Consolas', monospace; font-size: 0.85rem; }
+.input-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+.input-group input, .input-group select {
+    flex: 1; min-width: 180px; padding: 13px 16px; background: var(--input-bg);
+    border: 2px solid var(--border); border-radius: 12px; color: var(--text); font-size: 1rem;
+    font-family: 'Consolas', 'Courier New', monospace; transition: all 0.3s; outline: none;
+}
+.input-group input:focus, .input-group select:focus { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15); }
+.fields-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 15px; }
+.field-block label { display: block; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.field-block input, .field-block select {
+    width: 100%; padding: 11px 13px; background: var(--input-bg); border: 2px solid var(--border);
+    border-radius: 10px; color: var(--text); font-size: 1rem; font-family: 'Consolas', monospace;
+    transition: all 0.3s; outline: none;
+}
+.field-block input:focus, .field-block select:focus { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15); }
+.btn { padding: 13px 26px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; transition: all 0.25s; font-family: inherit; white-space: nowrap; }
+.btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(79, 70, 229, 0.6); }
+.btn-ghost { background: rgba(99, 102, 241, 0.15); color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:hover { background: rgba(99, 102, 241, 0.3); }
+.btn-row { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+.quick-buttons { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.quick-buttons button {
+    padding: 7px 13px; background: var(--input-bg); border: 1px solid var(--border); color: var(--secondary);
+    border-radius: 8px; font-size: 0.9rem; font-family: 'Consolas', monospace; cursor: pointer; transition: all 0.2s; font-weight: 600;
+}
+.quick-buttons button:hover { background: rgba(99, 102, 241, 0.25); color: var(--text); }
+.result { margin-top: 20px; padding: 20px; background: var(--input-bg); border-radius: 16px; border-left: 4px solid var(--secondary); display: none; animation: fadeIn 0.4s; }
+.result.show { display: block; }
+.result.error { border-left-color: var(--danger); }
+.result.success { border-left-color: var(--success); }
+.result-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; }
+.result-value { font-size: clamp(1.3rem, 3.5vw, 1.9rem); font-weight: 900; color: var(--secondary); font-family: 'Consolas', monospace; word-break: break-word; line-height: 1.4; }
+.result.error .result-value { color: var(--danger); font-size: 1.1rem; }
+.result.success .result-value { color: var(--success); }
+.steps { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.step { padding: 8px 14px; margin-bottom: 6px; background: rgba(99, 102, 241, 0.1); border-radius: 8px; font-family: 'Consolas', monospace; font-size: 0.92rem; color: var(--text); border-left: 2px solid var(--primary-light); }
+.step-num { color: var(--accent); font-weight: 700; margin-right: 8px; }
+.examples { margin-top: 10px; font-size: 0.83rem; color: var(--text-muted); }
+.examples button { background: none; border: none; color: var(--primary-light); cursor: pointer; font-family: 'Consolas', monospace; font-size: 0.83rem; padding: 2px 6px; border-radius: 4px; transition: all 0.2s; }
+.examples button:hover { background: rgba(99, 102, 241, 0.2); color: var(--secondary); }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 25px; max-width: 600px; width: 100%; max-height: 80vh; overflow-y: auto; backdrop-filter: blur(20px); }
+.modal h3 { font-size: 1.3rem; color: var(--secondary); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+.modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; padding: 0; width: 32px; height: 32px; border-radius: 8px; transition: all 0.2s; }
+.modal-close:hover { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+.history-item { padding: 12px 15px; background: var(--input-bg); border-radius: 10px; margin-bottom: 8px; border-left: 3px solid var(--primary); font-family: 'Consolas', monospace; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.history-item .hist-expr { color: var(--text); flex: 1; word-break: break-word; }
+.history-item .hist-result { color: var(--secondary); font-weight: 700; white-space: nowrap; }
+.history-empty { text-align: center; padding: 30px; color: var(--text-muted); font-style: italic; }
+.numpad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; max-width: 400px; margin-left: auto; margin-right: auto; }
+.numpad button { padding: 15px 10px; background: var(--input-bg); border: 1px solid var(--border); color: var(--text); border-radius: 10px; font-size: 1.1rem; font-family: 'Consolas', monospace; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.numpad button:hover { background: rgba(99, 102, 241, 0.25); }
+.numpad button.op { color: var(--secondary); }
+.numpad button.eq { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; }
+.numpad button.clr { color: var(--danger); }
+.trainer-display { text-align: center; padding: 30px 20px; background: var(--input-bg); border-radius: 16px; margin-bottom: 20px; border: 2px solid var(--border); }
+.trainer-question { font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 900; color: var(--secondary); font-family: 'Consolas', monospace; letter-spacing: 2px; }
+.trainer-stats { display: flex; gap: 20px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
+.trainer-stat { text-align: center; padding: 10px 20px; background: var(--input-bg); border-radius: 12px; border: 1px solid var(--border); }
+.trainer-stat .ts-val { font-size: 1.5rem; font-weight: 900; color: var(--accent); }
+.trainer-stat .ts-lbl { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.trainer-answer-input { width: 100%; max-width: 300px; display: block; margin: 0 auto 15px; padding: 15px; background: var(--input-bg); border: 2px solid var(--border); border-radius: 12px; color: var(--text); font-size: 1.4rem; text-align: center; font-family: 'Consolas', monospace; outline: none; transition: all 0.3s; }
+.trainer-answer-input:focus { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15); }
+.trainer-feedback { text-align: center; font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; min-height: 30px; }
+.trainer-feedback.correct { color: var(--success); }
+.trainer-feedback.wrong { color: var(--danger); }
+.trainer-levels { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
+.trainer-levels button { padding: 8px 15px; background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-family: inherit; transition: all 0.2s; }
+.trainer-levels button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.theory-box { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-left: 4px solid var(--accent); border-radius: 12px; padding: 15px 18px; margin-bottom: 18px; font-size: 0.9rem; line-height: 1.6; }
+.theory-box b { color: var(--accent); }
+.theory-box .formula { display: inline-block; background: rgba(245, 158, 11, 0.15); padding: 3px 10px; border-radius: 6px; font-family: 'Consolas', monospace; color: var(--secondary); margin: 3px 0; }
+.number-line { position: relative; height: 60px; margin: 20px 0; }
+.number-line::before { content: ''; position: absolute; top: 50%; left: 5%; right: 5%; height: 3px; background: var(--text-muted); transform: translateY(-50%); border-radius: 2px; }
+.nl-mark { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 3px solid var(--darker); z-index: 2; }
+.nl-label { position: absolute; top: 100%; transform: translateX(-50%); font-size: 0.8rem; color: var(--accent); font-weight: 700; font-family: 'Consolas', monospace; white-space: nowrap; }
+.nl-range { position: absolute; top: 50%; height: 6px; background: var(--secondary); transform: translateY(-50%); border-radius: 3px; z-index: 1; }
+footer { text-align: center; margin-top: 40px; padding: 20px; color: var(--text-muted); font-size: 0.82rem; letter-spacing: 1px; }
+footer span { color: var(--secondary); }
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--card); color: var(--text); padding: 14px 24px; border-radius: 12px; border: 1px solid var(--border); backdrop-filter: blur(15px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); z-index: 2000; font-weight: 600; transition: transform 0.3s, opacity 0.3s; opacity: 0; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.success { border-left: 4px solid var(--success); }
+.toast.error { border-left: 4px solid var(--danger); }
+.toast.info { border-left: 4px solid var(--secondary); }
+.poly-result { font-family: 'Consolas', monospace; font-size: 1.1rem; color: var(--secondary); word-break: break-word; }
+.geo-category { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
+.geo-cat-btn { padding: 8px 14px; background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-family: inherit; transition: all 0.2s; }
+.geo-cat-btn:hover { color: var(--text); }
+.geo-cat-btn.active { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; border-color: transparent; }
+.comments-section { margin-top: 60px; padding: 30px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; backdrop-filter: blur(15px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); }
+.comments-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+.comments-header h2 { font-size: 1.5rem; color: var(--secondary); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+.comments-count { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; }
+.comment-form { background: var(--input-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 25px; }
+.comment-form .form-row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.comment-form .form-row input { flex: 1; min-width: 200px; padding: 12px 16px; background: var(--darker); border: 2px solid var(--border); border-radius: 10px; color: var(--text); font-size: 0.95rem; font-family: inherit; transition: all 0.3s; outline: none; }
+.comment-form .form-row input:focus { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15); }
+.comment-form textarea { width: 100%; min-height: 100px; padding: 14px 18px; background: var(--darker); border: 2px solid var(--border); border-radius: 10px; color: var(--text); font-size: 0.95rem; font-family: inherit; resize: vertical; transition: all 0.3s; outline: none; margin-bottom: 12px; }
+.comment-form textarea:focus { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15); }
+.rating-input { display: flex; gap: 5px; align-items: center; margin-bottom: 12px; }
+.rating-input .rating-label { color: var(--text-muted); font-size: 0.9rem; margin-right: 8px; }
+.rating-input .star { font-size: 1.6rem; cursor: pointer; color: #475569; transition: all 0.2s; user-select: none; }
+.rating-input .star:hover, .rating-input .star.active { color: var(--accent); transform: scale(1.15); }
+.comments-filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.comments-filters .filter-label { color: var(--text-muted); font-size: 0.88rem; margin-right: 5px; }
+.filter-btn { padding: 6px 14px; background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); border-radius: 20px; cursor: pointer; font-size: 0.83rem; font-family: inherit; transition: all 0.2s; }
+.filter-btn:hover { color: var(--text); }
+.filter-btn.active { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; border-color: transparent; }
+.comments-list { display: flex; flex-direction: column; gap: 15px; }
+.comment-item { background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; transition: all 0.25s; animation: slideIn 0.4s ease-out; }
+.comment-item:hover { border-color: var(--primary-light); transform: translateX(4px); box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15); }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+.comment-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+.comment-author { display: flex; align-items: center; gap: 12px; }
+.comment-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 900; font-size: 1.1rem; flex-shrink: 0; }
+.comment-info { display: flex; flex-direction: column; gap: 2px; }
+.comment-name { font-weight: 700; color: var(--text); font-size: 0.95rem; }
+.comment-date { font-size: 0.78rem; color: var(--text-muted); }
+.comment-rating { color: var(--accent); font-size: 1rem; letter-spacing: 1px; white-space: nowrap; }
+.comment-text { color: var(--text); font-size: 0.94rem; line-height: 1.6; margin-bottom: 10px; word-wrap: break-word; white-space: pre-wrap; }
+.comment-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.comment-action-btn { padding: 5px 12px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+.comment-action-btn:hover { background: rgba(99, 102, 241, 0.15); color: var(--text); border-color: var(--primary-light); }
+.comment-action-btn.delete:hover { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: var(--danger); }
+.comment-action-btn.liked { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: var(--danger); }
+.comments-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-style: italic; font-size: 1rem; }
+.comments-stats { display: flex; gap: 20px; padding: 15px 20px; background: var(--input-bg); border-radius: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.comments-stat { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--text-muted); }
+.comments-stat b { color: var(--secondary); font-size: 1.1rem; }
+@media (max-width: 640px) {
+    .card { padding: 18px; }
+    .tab-btn { font-size: 0.78rem; padding: 9px 10px; min-width: 85px; }
+    .top-controls { position: relative; justify-content: center; margin-top: 15px; }
+    header { padding-bottom: 5px; }
+    .comments-section { padding: 20px 15px; }
+    .comments-header h2 { font-size: 1.2rem; }
+    .comment-item { padding: 14px 15px; }
+    .header-text { text-align: center; }
+}
+@media print {
+    .tabs, .top-controls, footer, .btn, .btn-row, .quick-buttons, .examples, .numpad, .geo-category, .comments-section, .brand-logo { display: none !important; }
+    body { background: #fff; color: #000; }
+    .card { box-shadow: none; border: 1px solid #ccc; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <svg class="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 10 C35 10, 20 25, 20 40 L30 40 C30 30, 40 20, 50 20 Z" fill="#f59e0b"/>
+            <path d="M50 10 C65 10, 80 25, 80 40 L70 40 C70 30, 60 20, 50 20 Z" fill="#10b981"/>
+            <path d="M50 10 L50 20 C55 20, 60 15, 65 12 Z" fill="#ef4444"/>
+            <path d="M50 10 L50 20 C45 20, 40 15, 35 12 Z" fill="#06b6d4"/>
+            <path d="M20 40 Q50 35, 80 40 L80 85 Q50 80, 20 85 Z" fill="#4f46e5" stroke="#6366f1" stroke-width="2"/>
+            <path d="M50 37 L50 83" stroke="#312e81" stroke-width="2" opacity="0.5"/>
+            <path d="M25 45 Q50 42, 75 45" stroke="#818cf8" stroke-width="1.5" fill="none" opacity="0.6"/>
+            <path d="M25 52 Q50 49, 75 52" stroke="#818cf8" stroke-width="1.5" fill="none" opacity="0.6"/>
+        </svg>
+        <div class="header-text">
+            <h1>MathSolver PRO</h1>
+            <p>Полный решатель для 1–9 классов</p>
+        </div>
+        <div class="top-controls">
+            <button class="icon-btn" id="theme-toggle" title="Тема">&#127769;</button>
+            <button class="icon-btn" id="history-toggle" title="История">&#128220;</button>
+            <button class="icon-btn" id="print-btn" title="Печать">&#128424;</button>
+        </div>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="expr">Выражения</button>
+        <button class="tab-btn" data-tab="equation">Уравнения</button>
+        <button class="tab-btn" data-tab="system">Системы</button>
+        <button class="tab-btn" data-tab="inequality">Неравенства</button>
+        <button class="tab-btn" data-tab="polynomial">Многочлены</button>
+        <button class="tab-btn" data-tab="ratfrac">Рац. дроби</button>
+        <button class="tab-btn" data-tab="fraction">Дроби</button>
+        <button class="tab-btn" data-tab="percent">Проценты</button>
+        <button class="tab-btn" data-tab="gcdlcm">НОД/НОК</button>
+        <button class="tab-btn" data-tab="progression">Прогрессии</button>
+        <button class="tab-btn" data-tab="geometry">Геометрия</button>
+        <button class="tab-btn" data-tab="trig">Тригонометрия</button>
+        <button class="tab-btn" data-tab="convert">Конвертер</button>
+        <button class="tab-btn" data-tab="factor">Множители</button>
+        <button class="tab-btn" data-tab="powers">Степени/Корни</button>
+        <button class="tab-btn" data-tab="trainer">Тренажёр</button>
+    </div>
+
+    <div class="panel active" id="panel-expr">
+        <div class="card">
+            <h2>Арифметическое выражение</h2>
+            <p class="hint">Поддерживаются: <code>+ - * / ( ) ^</code>, <code>sqrt</code>, <code>sin cos tg log ln</code>, <code>pi e</code></p>
+            <div class="input-group">
+                <input type="text" id="expr-input" placeholder="Например: (2+3)*4 - 10/2 + 2^3" autocomplete="off">
+                <button class="btn btn-primary" onclick="solveExpression()">Решить</button>
+            </div>
+            <div class="quick-buttons" id="quick-buttons"></div>
+            <div class="btn-row">
+                <button class="btn btn-ghost" onclick="toggleNumpad()">Клавиатура</button>
+            </div>
+            <div id="numpad-container" style="display:none;"><div class="numpad" id="numpad"></div></div>
+            <div class="examples" id="expr-examples"></div>
+            <div class="result" id="expr-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value" id="expr-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-equation">
+        <div class="card">
+            <h2>Решение уравнений</h2>
+            <div class="theory-box"><b>Формула:</b> <span class="formula">x = (-b ± sqrt(D)) / 2a</span>, <span class="formula">D = b² - 4ac</span></div>
+            <div class="fields-grid">
+                <div class="field-block"><label>a</label><input type="text" id="eq-a" value="1"></div>
+                <div class="field-block"><label>b</label><input type="text" id="eq-b" value="-5"></div>
+                <div class="field-block"><label>c</label><input type="text" id="eq-c" value="6"></div>
+            </div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="solveEquation()">Решить</button></div>
+            <div class="examples">
+                <button onclick="setEq(1,-5,6)">x^2-5x+6=0</button>
+                <button onclick="setEq(1,2,1)">x^2+2x+1=0</button>
+                <button onclick="setEq(0,2,-4)">2x-4=0</button>
+            </div>
+            <div class="result" id="eq-result">
+                <div class="result-label">Решение</div>
+                <div class="result-value" id="eq-value"></div>
+                <div class="steps" id="eq-steps"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-system">
+        <div class="card">
+            <h2>Система уравнений 2×2</h2>
+            <div class="fields-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="field-block"><label>a1</label><input type="number" id="s-a1" value="2"></div>
+                <div class="field-block"><label>b1</label><input type="number" id="s-b1" value="3"></div>
+                <div class="field-block"><label>c1</label><input type="number" id="s-c1" value="8"></div>
+                <div class="field-block"><label>a2</label><input type="number" id="s-a2" value="1"></div>
+                <div class="field-block"><label>b2</label><input type="number" id="s-b2" value="-1"></div>
+                <div class="field-block"><label>c2</label><input type="number" id="s-c2" value="1"></div>
+            </div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="solveSystem()">Решить</button></div>
+            <div class="result" id="sys-result">
+                <div class="result-label">Решение</div>
+                <div class="result-value" id="sys-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-inequality">
+        <div class="card">
+            <h2>Неравенства</h2>
+            <div class="fields-grid" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="field-block"><label>a</label><input type="number" id="in-a" value="1"></div>
+                <div class="field-block"><label>b</label><input type="number" id="in-b" value="-3"></div>
+                <div class="field-block"><label>c</label><input type="number" id="in-c" value="0"></div>
+                <div class="field-block">
+                    <label>Знак</label>
+                    <select id="in-sign">
+                        <option value="gt">&gt;</option>
+                        <option value="ge">&gt;=</option>
+                        <option value="lt">&lt;</option>
+                        <option value="le">&lt;=</option>
+                    </select>
+                </div>
+            </div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="solveInequality()">Решить</button></div>
+            <div class="result" id="ineq-result">
+                <div class="result-label">Решение</div>
+                <div class="result-value" id="ineq-value"></div>
+                <div id="ineq-line"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-polynomial">
+        <div class="card">
+            <h2>Многочлены</h2>
+            <div class="fields-grid">
+                <div class="field-block"><label>P(x)</label><input type="text" id="poly-p1" value="x^2 + 3x + 2"></div>
+                <div class="field-block"><label>Q(x)</label><input type="text" id="poly-p2" value="x + 1"></div>
+            </div>
+            <div class="fields-grid">
+                <div class="field-block">
+                    <label>Операция</label>
+                    <select id="poly-op">
+                        <option value="add">P + Q</option>
+                        <option value="sub">P - Q</option>
+                        <option value="mul">P * Q</option>
+                        <option value="div">P / Q</option>
+                        <option value="pow">P^n</option>
+                        <option value="value">P(x)</option>
+                        <option value="derivative">P'(x)</option>
+                    </select>
+                </div>
+                <div class="field-block"><label id="poly-extra-label">Доп. значение</label><input type="text" id="poly-extra" value="2"></div>
+            </div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="solvePolynomial()">Вычислить</button></div>
+            <div class="result" id="poly-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value poly-result" id="poly-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-ratfrac">
+        <div class="card">
+            <h2>Рациональные дроби</h2>
+            <div class="fields-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="field-block"><label>Числитель 1</label><input type="text" id="rf-n1" value="x^2 - 1"></div>
+                <div class="field-block"><label>Знаменатель 1</label><input type="text" id="rf-d1" value="x + 1"></div>
+            </div>
+            <div class="fields-grid">
+                <div class="field-block">
+                    <label>Операция</label>
+                    <select id="rf-op">
+                        <option value="+">Сложение</option>
+                        <option value="-">Вычитание</option>
+                        <option value="*">Умножение</option>
+                        <option value="/">Деление</option>
+                        <option value="simplify">Упростить</option>
+                        <option value="eval">Значение в x</option>
+                    </select>
+                </div>
+                <div class="field-block"><label id="rf-extra-label">Значение x</label><input type="text" id="rf-extra" value="2"></div>
+            </div>
+            <div class="fields-grid" style="grid-template-columns: repeat(2, 1fr);" id="rf-second-frac">
+                <div class="field-block"><label>Числитель 2</label><input type="text" id="rf-n2" value="x - 1"></div>
+                <div class="field-block"><label>Знаменатель 2</label><input type="text" id="rf-d2" value="x + 2"></div>
+            </div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="solveRationalFraction()">Вычислить</button></div>
+            <div class="result" id="rf-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value poly-result" id="rf-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-fraction">
+        <div class="card">
+            <h2>Дроби</h2>
+            <div class="fields-grid" style="grid-template-columns: repeat(5, 1fr);">
+                <div class="field-block"><label>Числ. 1</label><input type="number" id="f-n1" value="1"></div>
+                <div class="field-block"><label>Знам. 1</label><input type="number" id="f-d1" value="2"></div>
+                <div class="field-block">
+                    <label>Опер.</label>
+                    <select id="f-op">
+                        <option value="+">+</option>
+                        <option value="-">-</option>
+                        <option value="*">*</option>
+                        <option value="/">/</option>
+                    </select>
+                </div>
+                <div class="field-block"><label>Числ. 2</label><input type="number" id="f-n2" value="1"></div>
+                <div class="field-block"><label>Знам. 2</label><input type="number" id="f-d2" value="3"></div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="solveFraction()">Вычислить</button>
+                <button class="btn btn-ghost" onclick="commonDenominator()">Общий знаменатель</button>
+            </div>
+            <div class="result" id="frac-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value" id="frac-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-percent">
+        <div class="card">
+            <h2>Проценты</h2>
+            <div class="fields-grid" style="grid-template-columns: 1fr;">
+                <div class="field-block">
+                    <label>Тип</label>
+                    <select id="p-type">
+                        <option value="of">Сколько X% от Y?</option>
+                        <option value="what">Сколько % X от Y?</option>
+                        <option value="change">Изменение X → Y</option>
+                    </select>
+                </div>
+            </div>
+            <div class="fields-grid">
+                <div class="field-block"><label id="p-label-1">X</label><input type="number" id="p-x" value="20"></div>
+                <div class="field-block"><label id="p-label-2">Y</label><input type="number" id="p-y" value="150"></div>
+            </div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="solvePercent()">Вычислить</button></div>
+            <div class="result" id="pct-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value" id="pct-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-gcdlcm">
+        <div class="card">
+            <h2>НОД и НОК</h2>
+            <div class="fields-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="field-block"><label>Число 1</label><input type="number" id="g-a" value="24"></div>
+                <div class="field-block"><label>Число 2</label><input type="number" id="g-b" value="36"></div>
+            </div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="solveGcdLcm()">Вычислить</button></div>
+            <div class="result" id="gcd-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value" id="gcd-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-progression">
+        <div class="card">
+            <h2>Прогрессии</h2>
+            <div class="fields-grid" style="grid-template-columns: 1fr;">
+                <div class="field-block">
+                    <label>Тип</label>
+                    <select id="pr-type">
+                        <option value="arith">Арифметическая</option>
+                        <option value="geom">Геометрическая</option>
+                    </select>
+                </div>
+            </div>
+            <div class="fields-grid">
+                <div class="field-block"><label>Первый член</label><input type="number" id="pr-a1" value="2"></div>
+                <div class="field-block"><label id="pr-d-label">d или q</label><input type="number" id="pr-d" value="3"></div>
+                <div class="field-block"><label>n</label><input type="number" id="pr-n" value="10"></div>
+            </div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="solveProgression()">Вычислить</button></div>
+            <div class="result" id="prog-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value" id="prog-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-geometry">
+        <div class="card">
+            <h2>Геометрия</h2>
+            <div class="geo-category" id="geo-categories">
+                <button class="geo-cat-btn active" data-cat="flat">Планиметрия</button>
+                <button class="geo-cat-btn" data-cat="triangle">Треугольники</button>
+                <button class="geo-cat-btn" data-cat="circle">Окружность</button>
+            </div>
+            <div class="fields-grid" style="grid-template-columns: 1fr;">
+                <div class="field-block">
+                    <label>Задача</label>
+                    <select id="geo-type"></select>
+                </div>
+            </div>
+            <div class="theory-box" id="geo-theory"></div>
+            <div class="fields-grid" id="geo-fields"></div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="solveGeometry()">Вычислить</button></div>
+            <div class="result" id="geo-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value" id="geo-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-trig">
+        <div class="card">
+            <h2>Тригонометрия</h2>
+            <div class="fields-grid">
+                <div class="field-block"><label>Угол</label><input type="number" id="t-angle" value="30"></div>
+                <div class="field-block">
+                    <label>Единица</label>
+                    <select id="t-unit">
+                        <option value="deg">Градусы</option>
+                        <option value="rad">Радианы</option>
+                    </select>
+                </div>
+            </div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="solveTrig()">Вычислить</button></div>
+            <div class="result" id="trig-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value" id="trig-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-convert">
+        <div class="card">
+            <h2>Конвертер</h2>
+            <div class="fields-grid" style="grid-template-columns: 1fr;">
+                <div class="field-block">
+                    <label>Категория</label>
+                    <select id="cv-category">
+                        <option value="length">Длина</option>
+                        <option value="mass">Масса</option>
+                        <option value="time">Время</option>
+                    </select>
+                </div>
+            </div>
+            <div class="fields-grid">
+                <div class="field-block"><label>Значение</label><input type="number" id="cv-value" value="1"></div>
+                <div class="field-block"><label>Из</label><select id="cv-from"></select></div>
+                <div class="field-block"><label>В</label><select id="cv-to"></select></div>
+            </div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="convertUnits()">Перевести</button></div>
+            <div class="result" id="cv-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value" id="cv-value-out"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-factor">
+        <div class="card">
+            <h2>Множители</h2>
+            <div class="input-group">
+                <input type="number" id="factor-input" value="360">
+                <button class="btn btn-primary" onclick="factorize()">Разложить</button>
+            </div>
+            <div class="result" id="factor-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value" id="factor-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-powers">
+        <div class="card">
+            <h2>Степени и корни</h2>
+            <div class="fields-grid" style="grid-template-columns: 1fr;">
+                <div class="field-block">
+                    <label>Операция</label>
+                    <select id="pw-op">
+                        <option value="simplify">Упростить sqrt(n)</option>
+                        <option value="power">a^b</option>
+                        <option value="root">n-й корень</option>
+                    </select>
+                </div>
+            </div>
+            <div class="fields-grid">
+                <div class="field-block"><label>a</label><input type="number" id="pw-a" value="72"></div>
+                <div class="field-block"><label>b</label><input type="number" id="pw-b" value="2"></div>
+            </div>
+            <div class="btn-row"><button class="btn btn-primary" onclick="solvePowers()">Вычислить</button></div>
+            <div class="result" id="pw-result">
+                <div class="result-label">Результат</div>
+                <div class="result-value" id="pw-value"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" id="panel-trainer">
+        <div class="card">
+            <h2>Тренажёр</h2>
+            <div class="trainer-stats">
+                <div class="trainer-stat"><div class="ts-val" id="tr-correct">0</div><div class="ts-lbl">Правильно</div></div>
+                <div class="trainer-stat"><div class="ts-val" id="tr-total">0</div><div class="ts-lbl">Всего</div></div>
+                <div class="trainer-stat"><div class="ts-val" id="tr-streak">0</div><div class="ts-lbl">Серия</div></div>
+            </div>
+            <div class="trainer-levels">
+                <button data-level="1" class="active">1-2 класс</button>
+                <button data-level="2">3-4 класс</button>
+                <button data-level="3">5-6 класс</button>
+                <button data-level="4">7-9 класс</button>
+            </div>
+            <div class="trainer-display">
+                <div class="trainer-question" id="tr-question">Нажми "Начать"</div>
+            </div>
+            <input type="text" class="trainer-answer-input" id="tr-answer" placeholder="Ответ" disabled>
+            <div class="trainer-feedback" id="tr-feedback"></div>
+            <div class="btn-row" style="justify-content:center;">
+                <button class="btn btn-primary" onclick="trainerStart()">Начать</button>
+                <button class="btn btn-ghost" onclick="trainerCheck()">Проверить</button>
+                <button class="btn btn-ghost" onclick="trainerNext()">Следующий</button>
+                <button class="btn btn-ghost" onclick="trainerReset()">Сброс</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="comments-section" id="comments-section">
+        <div class="comments-header">
+            <h2>💬 Комментарии <span class="comments-count" id="comments-count">0</span></h2>
+            <div class="comments-stats">
+                <div class="comments-stat">Средняя оценка: <b id="avg-rating">—</b></div>
+            </div>
+        </div>
+        <div class="comment-form">
+            <div class="form-row"><input type="text" id="comment-name" placeholder="Ваше имя" maxlength="40"></div>
+            <div class="rating-input" id="rating-input">
+                <span class="rating-label">Оценка:</span>
+                <span class="star" data-value="1">★</span>
+                <span class="star" data-value="2">★</span>
+                <span class="star" data-value="3">★</span>
+                <span class="star" data-value="4">★</span>
+                <span class="star" data-value="5">★</span>
+            </div>
+            <textarea id="comment-text" placeholder="Поделитесь впечатлением..." maxlength="1000"></textarea>
+            <div class="btn-row" style="margin-top:0;">
+                <button class="btn btn-primary" onclick="submitComment()">Отправить</button>
+                <button class="btn btn-ghost" onclick="clearCommentForm()">Очистить</button>
+            </div>
+        </div>
+        <div class="comments-filters">
+            <span class="filter-label">Фильтр:</span>
+            <button class="filter-btn active" data-filter="all">Все</button>
+            <button class="filter-btn" data-filter="5">5 ★</button>
+            <button class="filter-btn" data-filter="4">4 ★</button>
+            <button class="filter-btn" data-filter="3">3 ★</button>
+            <button class="filter-btn" data-filter="liked">❤ Избранные</button>
+        </div>
+        <div class="comments-list" id="comments-list"></div>
+    </div>
+
+    <footer>MathSolver PRO v5.2 — Умный помощник в математике</footer>
+</div>
+
+<div class="modal-overlay" id="history-modal">
+    <div class="modal">
+        <h3>История <button class="modal-close" onclick="closeHistory()">x</button></h3>
+        <div id="history-list"></div>
+        <div class="btn-row" style="justify-content:center;">
+            <button class="btn btn-ghost" onclick="clearHistory()">Очистить</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function formatNumber(n) {
+    if (!isFinite(n)) return 'inf';
+    if (Number.isInteger(n)) return n.toString();
+    return Math.round(n * 1e10) / 1e10;
+}
+function gcd(a, b) {
+    a = Math.abs(a); b = Math.abs(b);
+    while (b) { var t = b; b = a % b; a = t; }
+    return a || 1;
+}
+function showToast(msg, type) {
+    var t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.className = 'toast show ' + (type || 'info');
+    setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+function escapeHtml(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, function(c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
+function saveHistory(type, input, output) {
+    try {
+        var h = JSON.parse(localStorage.getItem('mathsolver_history') || '[]');
+        h.unshift({ type: type, input: input, output: output });
+        if (h.length > 50) h = h.slice(0, 50);
+        localStorage.setItem('mathsolver_history', JSON.stringify(h));
+    } catch (e) {}
+}
+function loadHistory() {
+    try { return JSON.parse(localStorage.getItem('mathsolver_history') || '[]'); }
+    catch (e) { return []; }
+}
+function renderHistory() {
+    var list = document.getElementById('history-list');
+    if (!list) return;
+    var history = loadHistory();
+    if (history.length === 0) {
+        list.innerHTML = '<div class="history-empty">История пуста</div>';
+        return;
+    }
+    var html = '';
+    for (var i = 0; i < history.length; i++) {
+        var h = history[i];
+        html += '<div class="history-item"><div class="hist-expr">' +
+            (h.type ? '<b style="color:var(--accent)">[' + escapeHtml(h.type) + ']</b> ' : '') +
+            escapeHtml(h.input) + '</div><div class="hist-result">' + escapeHtml(h.output) + '</div></div>';
+    }
+    list.innerHTML = html;
+}
+function clearHistory() {
+    if (confirm('Очистить?')) {
+        try { localStorage.removeItem('mathsolver_history'); } catch (e) {}
+        renderHistory();
+        showToast('Очищено', 'info');
+    }
+}
+function closeHistory() {
+    var m = document.getElementById('history-modal');
+    if (m) m.classList.remove('show');
+}
+
+/* КОММЕНТАРИИ */
+var commentsState = { currentRating: 0, filter: 'all' };
+var commentsMemory = [];
+function loadComments() {
+    try {
+        var raw = localStorage.getItem('mathsolver_comments');
+        if (raw) {
+            var parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed;
+        }
+        return [];
+    } catch (e) { return commentsMemory.slice(); }
+}
+function saveComments(comments) {
+    commentsMemory = comments.slice();
+    try { localStorage.setItem('mathsolver_comments', JSON.stringify(comments)); } catch (e) { console.warn(e); }
+}
+function formatDate(ts) {
+    if (!ts) return '';
+    var d = new Date(ts), now = new Date(), diff = (now - d) / 1000;
+    if (diff < 60) return 'только что';
+    if (diff < 3600) return Math.floor(diff/60) + ' мин назад';
+    if (diff < 86400) return Math.floor(diff/3600) + ' ч назад';
+    if (diff < 604800) return Math.floor(diff/86400) + ' дн назад';
+    return d.toLocaleDateString('ru-RU');
+}
+function renderComments() {
+    var list = document.getElementById('comments-list');
+    var countEl = document.getElementById('comments-count');
+    var avgEl = document.getElementById('avg-rating');
+    if (!list) return;
+    var comments = loadComments();
+    var filtered = comments.slice();
+    if (commentsState.filter === 'liked') filtered = comments.filter(function(c) { return c.liked; });
+    else if (commentsState.filter !== 'all') filtered = comments.filter(function(c) { return String(c.rating) === commentsState.filter; });
+
+    if (countEl) countEl.textContent = comments.length;
+    if (avgEl) {
+        if (comments.length > 0) {
+            var sum = 0, cnt = 0;
+            for (var i = 0; i < comments.length; i++) if (comments[i].rating > 0) { sum += comments[i].rating; cnt++; }
+            avgEl.textContent = cnt > 0 ? (sum / cnt).toFixed(1) + ' / 5' : '—';
+        } else avgEl.textContent = '—';
+    }
+    if (filtered.length === 0) {
+        list.innerHTML = '<div class="comments-empty">Здесь пока нет комментариев. Будьте первым!</div>';
+        return;
+    }
+    var html = '';
+    for (var j = 0; j < filtered.length; j++) {
+        var c = filtered[j];
+        var nameStr = c.name || 'Аноним';
+        var initial = nameStr.charAt(0).toUpperCase();
+        var stars = '';
+        for (var s = 1; s <= 5; s++) stars += s <= c.rating ? '★' : '☆';
+        html += '<div class="comment-item">';
+        html += '<div class="comment-header"><div class="comment-author">';
+        html += '<div class="comment-avatar">' + escapeHtml(initial) + '</div>';
+        html += '<div class="comment-info"><div class="comment-name">' + escapeHtml(nameStr) + '</div>';
+        html += '<div class="comment-date">' + escapeHtml(formatDate(c.date)) + '</div></div></div>';
+        html += '<div class="comment-rating">' + stars + '</div></div>';
+        html += '<div class="comment-text">' + escapeHtml(c.text || '') + '</div>';
+        html += '<div class="comment-actions">';
+        html += '<button class="comment-action-btn ' + (c.liked ? 'liked' : '') + '" onclick="toggleLike(' + c.id + ')">' + (c.liked ? '❤ В избранном' : '♡ В избранное') + '</button>';
+        html += '<button class="comment-action-btn delete" onclick="deleteComment(' + c.id + ')">🗑 Удалить</button>';
+        html += '</div></div>';
+    }
+    list.innerHTML = html;
+}
+function submitComment() {
+    var nameEl = document.getElementById('comment-name');
+    var textEl = document.getElementById('comment-text');
+    if (!nameEl || !textEl) return;
+    var name = nameEl.value.trim(), text = textEl.value.trim();
+    if (!name) { showToast('Введите имя', 'error'); return; }
+    if (!text) { showToast('Введите комментарий', 'error'); return; }
+    if (text.length < 3) { showToast('Слишком короткий', 'error'); return; }
+    var comments = loadComments();
+    comments.unshift({ id: Date.now(), name: name, text: text, rating: commentsState.currentRating, date: Date.now(), liked: false });
+    saveComments(comments);
+    clearCommentForm();
+    commentsState.filter = 'all';
+    var allFilters = document.querySelectorAll('.filter-btn');
+    for (var i = 0; i < allFilters.length; i++) allFilters[i].classList.toggle('active', allFilters[i].getAttribute('data-filter') === 'all');
+    renderComments();
+    showToast('Комментарий добавлен!', 'success');
+}
+function clearCommentForm() {
+    var n = document.getElementById('comment-name'), t = document.getElementById('comment-text');
+    if (n) n.value = '';
+    if (t) t.value = '';
+    commentsState.currentRating = 0;
+    var stars = document.querySelectorAll('#rating-input .star');
+    for (var i = 0; i < stars.length; i++) { stars[i].classList.remove('active'); stars[i].style.color = ''; }
+}
+function deleteComment(id) {
+    if (!confirm('Удалить?')) return;
+    var comments = loadComments().filter(function(c) { return c.id !== id; });
+    saveComments(comments);
+    renderComments();
+    showToast('Удалено', 'info');
+}
+function toggleLike(id) {
+    var comments = loadComments();
+    for (var i = 0; i < comments.length; i++) if (comments[i].id === id) { comments[i].liked = !comments[i].liked; break; }
+    saveComments(comments);
+    renderComments();
+}
+function initComments() {
+    var stars = document.querySelectorAll('#rating-input .star');
+    for (var i = 0; i < stars.length; i++) {
+        (function(star) {
+            star.addEventListener('mouseenter', function() {
+                var val = parseInt(star.getAttribute('data-value'));
+                for (var j = 0; j < stars.length; j++) stars[j].style.color = parseInt(stars[j].getAttribute('data-value')) <= val ? 'var(--accent)' : '';
+            });
+            star.addEventListener('mouseleave', function() {
+                for (var j = 0; j < stars.length; j++) stars[j].style.color = parseInt(stars[j].getAttribute('data-value')) <= commentsState.currentRating ? 'var(--accent)' : '';
+            });
+            star.addEventListener('click', function() {
+                commentsState.currentRating = parseInt(star.getAttribute('data-value'));
+                for (var j = 0; j < stars.length; j++) stars[j].classList.toggle('active', parseInt(stars[j].getAttribute('data-value')) <= commentsState.currentRating);
+            });
+        })(stars[i]);
+    }
+    var filterBtns = document.querySelectorAll('.filter-btn');
+    for (var k = 0; k < filterBtns.length; k++) {
+        (function(btn) {
+            btn.addEventListener('click', function() {
+                for (var z = 0; z < filterBtns.length; z++) filterBtns[z].classList.remove('active');
+                btn.classList.add('active');
+                commentsState.filter = btn.getAttribute('data-filter');
+                renderComments();
+            });
+        })(filterBtns[k]);
+    }
+    renderComments();
+}
+
+/* МНОГОЧЛЕНЫ */
+function parsePoly(str) {
+    var s = String(str).toLowerCase().replace(/\s+/g, '');
+    if (s === '' || s === '0') return [0];
+    s = s.replace(/-/g, '+-');
+    if (s.charAt(0) === '+') s = s.slice(1);
+    var terms = s.split('+'), coeffs = {};
+    for (var i = 0; i < terms.length; i++) {
+        var t = terms[i];
+        if (t === '') continue;
+        var coef, power;
+        if (t.indexOf('x^') !== -1) { var p = t.split('x^'); coef = p[0] === '' ? 1 : (p[0] === '-' ? -1 : parseFloat(p[0])); power = parseInt(p[1]); }
+        else if (t.indexOf('x') !== -1) { var c = t.replace('x', ''); coef = c === '' ? 1 : (c === '-' ? -1 : parseFloat(c)); power = 1; }
+        else { coef = parseFloat(t); power = 0; }
+        if (isNaN(coef) || isNaN(power) || power < 0) throw new Error('Не разобрано: ' + t);
+        coeffs[power] = (coeffs[power] || 0) + coef;
+    }
+    var maxP = 0;
+    for (var pp in coeffs) if (parseInt(pp) > maxP) maxP = parseInt(pp);
+    var r = [];
+    for (var kk = 0; kk <= maxP; kk++) r.push(coeffs[kk] || 0);
+    return r;
+}
+function polyToString(p) {
+    if (!p || p.length === 0) return '0';
+    var arr = p.slice();
+    while (arr.length > 1 && Math.abs(arr[arr.length - 1]) < 1e-10) arr.pop();
+    var terms = [];
+    for (var i = arr.length - 1; i >= 0; i--) {
+        var c = arr[i];
+        if (Math.abs(c) < 1e-10) continue;
+        var sign = c > 0 ? (terms.length > 0 ? ' + ' : '') : (terms.length > 0 ? ' - ' : '-');
+        var abs = Math.abs(c);
+        var cs = (Math.abs(abs - 1) < 1e-10 && i > 0) ? '' : formatNumber(abs);
+        var xp = i === 0 ? '' : (i === 1 ? 'x' : 'x^' + i);
+        terms.push(sign + cs + xp);
+    }
+    return terms.length === 0 ? '0' : terms.join('');
+}
+function polyAdd(p, q) { var len = Math.max(p.length, q.length), r = []; for (var i = 0; i < len; i++) r.push((p[i]||0)+(q[i]||0)); return r; }
+function polySub(p, q) { var len = Math.max(p.length, q.length), r = []; for (var i = 0; i < len; i++) r.push((p[i]||0)-(q[i]||0)); return r; }
+function polyMul(p, q) { var r = []; for (var i = 0; i < p.length + q.length - 1; i++) r.push(0); for (var a = 0; a < p.length; a++) for (var b = 0; b < q.length; b++) r[a+b] += p[a]*q[b]; return r; }
+function polyDiv(p, q) {
+    if (q.length === 0 || (q.length === 1 && Math.abs(q[0]) < 1e-10)) throw new Error('Деление на 0');
+    var rem = p.slice();
+    if (rem.length < q.length) return { quotient: [0], remainder: rem };
+    var quot = []; for (var i = 0; i <= rem.length - q.length; i++) quot.push(0);
+    var guard = 0;
+    while (rem.length >= q.length && rem.some(function(c) { return Math.abs(c) > 1e-10; }) && guard++ < 1000) {
+        var lr = rem[rem.length - 1], lq = q[q.length - 1], coef = lr / lq, power = rem.length - q.length;
+        quot[power] += coef;
+        for (var j = 0; j < q.length; j++) rem[power + j] -= coef * q[j];
+        while (rem.length > 1 && Math.abs(rem[rem.length - 1]) < 1e-10) rem.pop();
+    }
+    return { quotient: quot, remainder: rem };
+}
+function polyDegree(p) { var a = p.slice(); while (a.length > 1 && Math.abs(a[a.length-1]) < 1e-10) a.pop(); return a.length - 1; }
+function polyEval(p, x) { var r = 0; for (var i = p.length - 1; i >= 0; i--) r = r * x + p[i]; return r; }
+function polyDerivative(p) { if (p.length <= 1) return [0]; var r = []; for (var i = 1; i < p.length; i++) r.push(p[i]*i); return r; }
+function polyIsZero(p) { for (var i = 0; i < p.length; i++) if (Math.abs(p[i]) > 1e-10) return false; return true; }
+function polyNormalize(p) { var l = p[p.length - 1]; if (Math.abs(l) < 1e-10) return p.slice(); var r = []; for (var i = 0; i < p.length; i++) r.push(p[i]/l); return r; }
+function polyGcd(p, q) {
+    var a = p.slice(), b = q.slice();
+    while (a.length > 1 && Math.abs(a[a.length-1]) < 1e-10) a.pop();
+    while (b.length > 1 && Math.abs(b[b.length-1]) < 1e-10) b.pop();
+    if (polyDegree(b) < 0 || (b.length === 1 && Math.abs(b[0]) < 1e-10)) return polyNormalize(a);
+    var guard = 0;
+    while ((b.length > 1 || Math.abs(b[0]) > 1e-10) && guard++ < 1000) {
+        var r = polyDiv(a, b);
+        a = b; b = r.remainder;
+        if (b.length === 1 && Math.abs(b[0]) < 1e-10) break;
+    }
+    return polyNormalize(a);
+}
+function ratFracToString(num, den) {
+    var nStr = polyToString(num), dStr = polyToString(den);
+    if (polyDegree(den) === 0 && Math.abs(den[0] - 1) < 1e-10) return nStr;
+    if (polyIsZero(num)) return '0';
+    return '(' + nStr + ') / (' + dStr + ')';
+}
+function solveRationalFraction() {
+    var box = document.getElementById('rf-result'), val = document.getElementById('rf-value');
+    try {
+        var op = document.getElementById('rf-op').value;
+        var n1 = parsePoly(document.getElementById('rf-n1').value), d1 = parsePoly(document.getElementById('rf-d1').value);
+        var extra = document.getElementById('rf-extra').value;
+        if (polyIsZero(d1)) throw new Error('Знаменатель 1 = 0');
+        box.className = 'result show success';
+        if (op === 'simplify') {
+            var g = polyGcd(n1, d1);
+            if (polyDegree(g) === 0 && Math.abs(g[0]) < 1e-10) val.textContent = ratFracToString(n1, d1);
+            else val.textContent = ratFracToString(polyDiv(n1, g).quotient, polyDiv(d1, g).quotient);
+            saveHistory('Рац. дробь', 'simplify', val.textContent);
+            return;
+        }
+        if (op === 'eval') {
+            var x = parseFloat(extra);
+            if (isNaN(x)) throw new Error('Введите x');
+            var nv = polyEval(n1, x), dv = polyEval(d1, x);
+            if (Math.abs(dv) < 1e-12) throw new Error('Знаменатель = 0');
+            val.textContent = formatNumber(nv / dv);
+            saveHistory('Рац. дробь', 'eval', val.textContent);
+            return;
+        }
+        var n2 = parsePoly(document.getElementById('rf-n2').value), d2 = parsePoly(document.getElementById('rf-d2').value);
+        if (polyIsZero(d2)) throw new Error('Знаменатель 2 = 0');
+        var rn, rd;
+        if (op === '+') { rn = polyAdd(polyMul(n1, d2), polyMul(n2, d1)); rd = polyMul(d1, d2); }
+        else if (op === '-') { rn = polySub(polyMul(n1, d2), polyMul(n2, d1)); rd = polyMul(d1, d2); }
+        else if (op === '*') { rn = polyMul(n1, n2); rd = polyMul(d1, d2); }
+        else { if (polyIsZero(n2)) throw new Error('Деление на 0'); rn = polyMul(n1, d2); rd = polyMul(d1, n2); }
+        if (polyIsZero(rn)) val.textContent = '0';
+        else {
+            var g2 = polyGcd(rn, rd);
+            if (polyDegree(g2) > 0) val.textContent = ratFracToString(polyDiv(rn, g2).quotient, polyDiv(rd, g2).quotient);
+            else val.textContent = ratFracToString(rn, rd);
+        }
+        saveHistory('Рац. дробь', op, val.textContent);
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+function solvePolynomial() {
+    var box = document.getElementById('poly-result'), val = document.getElementById('poly-value');
+    try {
+        var op = document.getElementById('poly-op').value;
+        var p = parsePoly(document.getElementById('poly-p1').value), q = parsePoly(document.getElementById('poly-p2').value);
+        var extra = document.getElementById('poly-extra').value;
+        box.className = 'result show success';
+        var ans = '';
+        if (op === 'add') ans = polyToString(polyAdd(p, q));
+        else if (op === 'sub') ans = polyToString(polySub(p, q));
+        else if (op === 'mul') ans = polyToString(polyMul(p, q));
+        else if (op === 'div') { var d = polyDiv(p, q); ans = 'Частное: ' + polyToString(d.quotient) + ', остаток: ' + polyToString(d.remainder); }
+        else if (op === 'pow') { var n = parseInt(extra); if (isNaN(n) || n < 0) throw new Error('n >= 0'); var r = [1]; for (var i = 0; i < n; i++) r = polyMul(r, p); ans = polyToString(r); }
+        else if (op === 'value') { var xx = parseFloat(extra); if (isNaN(xx)) throw new Error('Введите x'); ans = 'P(' + xx + ') = ' + formatNumber(polyEval(p, xx)); }
+        else if (op === 'derivative') ans = "P'(x) = " + polyToString(polyDerivative(p));
+        val.textContent = ans;
+        saveHistory('Многочлены', op, ans);
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+
+/* ВЫРАЖЕНИЯ */
+function parseExpression(expr) {
+    var s = String(expr).replace(/,/g, '.').replace(/\u03C0/g, 'pi').replace(/\u221A/g, 'sqrt').replace(/\u00D7/g, '*').replace(/\u00F7/g, '/').replace(/:/g, '/').replace(/\u2212/g, '-').replace(/\s+/g, '');
+    if (!s) throw new Error('Введите выражение');
+    if (!/^[0-9+\-*/().^a-zA-Z]+$/.test(s)) throw new Error('Недопустимые символы');
+    s = s.replace(/\^/g, '**');
+    var idents = s.match(/[a-zA-Z]+/g) || [];
+    var allowed = {sqrt:1, abs:1, sin:1, cos:1, tg:1, tan:1, log:1, ln:1, pi:1, e:1};
+    for (var i = 0; i < idents.length; i++) if (!allowed[idents[i]]) throw new Error('Неизвестная: ' + idents[i]);
+    var depth = 0;
+    for (var j = 0; j < s.length; j++) {
+        if (s[j] === '(') depth++;
+        if (s[j] === ')') depth--;
+        if (depth < 0) throw new Error('Лишняя скобка');
+    }
+    if (depth !== 0) throw new Error('Не хватает скобки');
+    var code = s.replace(/\bpi\b/g, 'Math.PI').replace(/\be\b/g, 'Math.E').replace(/\bsqrt\b/g, 'Math.sqrt').replace(/\babs\b/g, 'Math.abs').replace(/\bsin\b/g, 'Math.sin').replace(/\bcos\b/g, 'Math.cos').replace(/\btg\b/g, 'Math.tan').replace(/\btan\b/g, 'Math.tan').replace(/\blog\b/g, 'Math.log').replace(/\bln\b/g, 'Math.log');
+    var result;
+    try { result = Function('"use strict"; return (' + code + ');')(); } catch (e) { throw new Error('Ошибка вычисления'); }
+    if (typeof result !== 'number' || isNaN(result)) throw new Error('Не число');
+    if (!isFinite(result)) throw new Error('Деление на ноль');
+    return result;
+}
+function solveExpression() {
+    var box = document.getElementById('expr-result'), val = document.getElementById('expr-value');
+    try {
+        var result = parseExpression(document.getElementById('expr-input').value);
+        box.className = 'result show success';
+        val.textContent = '= ' + formatNumber(result);
+        saveHistory('Выражение', document.getElementById('expr-input').value, formatNumber(result));
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+
+/* УРАВНЕНИЯ */
+function setEq(a, b, c) {
+    document.getElementById('eq-a').value = a;
+    document.getElementById('eq-b').value = b;
+    document.getElementById('eq-c').value = c;
+    solveEquation();
+}
+function solveEquation() {
+    var box = document.getElementById('eq-result'), val = document.getElementById('eq-value');
+    try {
+        var a = parseFloat(document.getElementById('eq-a').value), b = parseFloat(document.getElementById('eq-b').value), c = parseFloat(document.getElementById('eq-c').value);
+        if (isNaN(a) || isNaN(b) || isNaN(c)) throw new Error('Заполните');
+        box.className = 'result show success';
+        if (a === 0 && b === 0) { val.textContent = c === 0 ? 'x - любое' : 'Нет решений'; return; }
+        if (a === 0) { val.textContent = 'x = ' + formatNumber(-c/b); return; }
+        var D = b*b - 4*a*c;
+        if (D < 0) val.textContent = 'Корней нет';
+        else if (D === 0) val.textContent = 'x = ' + formatNumber(-b/(2*a));
+        else {
+            var sq = Math.sqrt(D);
+            val.textContent = 'x1 = ' + formatNumber((-b+sq)/(2*a)) + ', x2 = ' + formatNumber((-b-sq)/(2*a));
+        }
+        saveHistory('Уравнение', a + 'x^2+' + b + 'x+' + c, val.textContent);
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+function solveSystem() {
+    var box = document.getElementById('sys-result'), val = document.getElementById('sys-value');
+    try {
+        var a1 = +document.getElementById('s-a1').value, b1 = +document.getElementById('s-b1').value, c1 = +document.getElementById('s-c1').value;
+        var a2 = +document.getElementById('s-a2').value, b2 = +document.getElementById('s-b2').value, c2 = +document.getElementById('s-c2').value;
+        var D = a1*b2 - a2*b1, Dx = c1*b2 - c2*b1, Dy = a1*c2 - a2*c1;
+        box.className = 'result show success';
+        if (D === 0) val.textContent = (Dx === 0 && Dy === 0) ? 'Бесконечно много' : 'Нет решений';
+        else val.textContent = 'x = ' + formatNumber(Dx/D) + ', y = ' + formatNumber(Dy/D);
+        saveHistory('Система', 'Крамер', val.textContent);
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+function signToSymbol(s) { return { gt: '>', ge: '>=', lt: '<', le: '<=' }[s]; }
+function flipSign(s) { return { gt: 'lt', ge: 'le', lt: 'gt', le: 'ge' }[s]; }
+function evalIneq(c, s) { return s === 'gt' ? c > 0 : s === 'ge' ? c >= 0 : s === 'lt' ? c < 0 : c <= 0; }
+function solveInequality() {
+    var box = document.getElementById('ineq-result'), val = document.getElementById('ineq-value');
+    var lineBox = document.getElementById('ineq-line');
+    lineBox.innerHTML = '';
+    try {
+        var a = +document.getElementById('in-a').value, b = +document.getElementById('in-b').value, c = +document.getElementById('in-c').value;
+        var sign = document.getElementById('in-sign').value;
+        box.className = 'result show success';
+        if (a === 0) {
+            if (b === 0) { val.textContent = evalIneq(c, sign) ? 'x - любое' : 'Нет решений'; return; }
+            var root = -c/b, flip = b < 0, fs = flip ? flipSign(sign) : sign;
+            val.textContent = 'x ' + signToSymbol(fs) + ' ' + formatNumber(root);
+            lineBox.innerHTML = '<div class="number-line"><div class="nl-mark" style="left:50%;"></div><div class="nl-label" style="left:50%;">' + formatNumber(root) + '</div></div>';
+            return;
+        }
+        var D = b*b - 4*a*c;
+        if (D < 0) { var ok = a > 0 ? (sign === 'gt' || sign === 'ge') : (sign === 'lt' || sign === 'le'); val.textContent = ok ? 'x - любое' : 'Нет решений'; return; }
+        var sq = Math.sqrt(D);
+        var x1 = (-b - sq)/(2*a), x2 = (-b + sq)/(2*a);
+        var left = Math.min(x1, x2), right = Math.max(x1, x2);
+        var pos = a > 0, wp = sign === 'gt' || sign === 'ge', incl = sign === 'ge' || sign === 'le';
+        var ans;
+        if ((pos && wp) || (!pos && !wp)) ans = incl ? 'x <= ' + formatNumber(left) + ' или x >= ' + formatNumber(right) : 'x < ' + formatNumber(left) + ' или x > ' + formatNumber(right);
+        else ans = incl ? formatNumber(left) + ' <= x <= ' + formatNumber(right) : formatNumber(left) + ' < x < ' + formatNumber(right);
+        val.textContent = ans;
+        lineBox.innerHTML = '<div class="number-line"><div class="nl-mark" style="left:30%;"></div><div class="nl-label" style="left:30%;">' + formatNumber(left) + '</div><div class="nl-mark" style="left:70%;"></div><div class="nl-label" style="left:70%;">' + formatNumber(right) + '</div></div>';
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+function solveFraction() {
+    var box = document.getElementById('frac-result'), val = document.getElementById('frac-value');
+    try {
+        var n1 = parseInt(document.getElementById('f-n1').value), d1 = parseInt(document.getElementById('f-d1').value);
+        var n2 = parseInt(document.getElementById('f-n2').value), d2 = parseInt(document.getElementById('f-d2').value);
+        var op = document.getElementById('f-op').value;
+        if (isNaN(n1) || isNaN(d1) || isNaN(n2) || isNaN(d2)) throw new Error('Заполните');
+        if (d1 === 0 || d2 === 0) throw new Error('Знаменатель 0');
+        var rn, rd;
+        if (op === '+') { rn = n1*d2 + n2*d1; rd = d1*d2; }
+        else if (op === '-') { rn = n1*d2 - n2*d1; rd = d1*d2; }
+        else if (op === '*') { rn = n1*n2; rd = d1*d2; }
+        else { if (n2 === 0) throw new Error('Деление на 0'); rn = n1*d2; rd = d1*n2; }
+        var g = gcd(rn, rd);
+        rn /= g; rd /= g;
+        if (rd < 0) { rn = -rn; rd = -rd; }
+        box.className = 'result show success';
+        val.textContent = rd === 1 ? '= ' + rn : '= ' + rn + '/' + rd + ' ~ ' + formatNumber(rn/rd);
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+function commonDenominator() {
+    var box = document.getElementById('frac-result'), val = document.getElementById('frac-value');
+    try {
+        var n1 = parseInt(document.getElementById('f-n1').value), d1 = parseInt(document.getElementById('f-d1').value);
+        var n2 = parseInt(document.getElementById('f-n2').value), d2 = parseInt(document.getElementById('f-d2').value);
+        var lcm = d1 / gcd(d1, d2) * d2;
+        box.className = 'result show success';
+        val.textContent = (n1*lcm/d1) + '/' + lcm + ' и ' + (n2*lcm/d2) + '/' + lcm;
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+function solvePercent() {
+    var box = document.getElementById('pct-result'), val = document.getElementById('pct-value');
+    try {
+        var type = document.getElementById('p-type').value;
+        var x = parseFloat(document.getElementById('p-x').value), y = parseFloat(document.getElementById('p-y').value);
+        if (isNaN(x) || isNaN(y)) throw new Error('Заполните');
+        box.className = 'result show success';
+        var ans;
+        if (type === 'of') ans = formatNumber(x/100 * y);
+        else if (type === 'what') { if (y === 0) throw new Error('Y=0'); ans = formatNumber(x/y*100) + '%'; }
+        else { if (x === 0) throw new Error('X=0'); ans = formatNumber(Math.abs((y-x)/x*100)) + '%'; }
+        val.textContent = ans;
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+function solveGcdLcm() {
+    var box = document.getElementById('gcd-result'), val = document.getElementById('gcd-value');
+    try {
+        var a = parseInt(document.getElementById('g-a').value), b = parseInt(document.getElementById('g-b').value);
+        if (isNaN(a) || isNaN(b) || a <= 0 || b <= 0) throw new Error('Натуральные');
+        var g = gcd(a, b), l = a/g*b;
+        box.className = 'result show success';
+        val.innerHTML = 'НОД = <b style="color:var(--accent)">' + g + '</b>, НОК = <b style="color:var(--accent)">' + l + '</b>';
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+function solveProgression() {
+    var box = document.getElementById('prog-result'), val = document.getElementById('prog-value');
+    try {
+        var type = document.getElementById('pr-type').value;
+        var a1 = parseFloat(document.getElementById('pr-a1').value), d = parseFloat(document.getElementById('pr-d').value), n = parseInt(document.getElementById('pr-n').value);
+        if (isNaN(a1) || isNaN(d) || isNaN(n) || n < 1) throw new Error('Заполните');
+        box.className = 'result show success';
+        var ans;
+        if (type === 'arith') { var an = a1+(n-1)*d, sn = (a1+an)*n/2; ans = 'an = ' + formatNumber(an) + ', Sn = ' + formatNumber(sn); }
+        else { if (d === 0) throw new Error('q=0'); var bn = a1*Math.pow(d, n-1), sn2 = d === 1 ? a1*n : a1*(Math.pow(d, n)-1)/(d-1); ans = 'bn = ' + formatNumber(bn) + ', Sn = ' + formatNumber(sn2); }
+        val.textContent = ans;
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+function solveTrig() {
+    var box = document.getElementById('trig-result'), val = document.getElementById('trig-value');
+    try {
+        var angle = parseFloat(document.getElementById('t-angle').value), unit = document.getElementById('t-unit').value;
+        if (isNaN(angle)) throw new Error('Введите угол');
+        var rad = unit === 'deg' ? angle*Math.PI/180 : angle;
+        var sin = Math.sin(rad), cos = Math.cos(rad);
+        var round = function(x) { return Math.abs(x) < 1e-10 ? 0 : Math.round(x*1e6)/1e6; };
+        var tanStr = Math.abs(cos) < 1e-10 ? 'не определен' : formatNumber(round(sin/cos));
+        box.className = 'result show success';
+        val.textContent = 'sin=' + formatNumber(round(sin)) + ', cos=' + formatNumber(round(cos)) + ', tg=' + tanStr;
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+var unitsData = {
+    length: { 'мм': 0.001, 'см': 0.01, 'дм': 0.1, 'м': 1, 'км': 1000 },
+    mass: { 'мг': 0.000001, 'г': 0.001, 'кг': 1, 'т': 1000 },
+    time: { 'сек': 1, 'мин': 60, 'час': 3600, 'сутки': 86400 }
+};
+function fillUnits() {
+    var cat = document.getElementById('cv-category').value;
+    var units = Object.keys(unitsData[cat]);
+    var from = document.getElementById('cv-from'), to = document.getElementById('cv-to');
+    var html = '';
+    for (var i = 0; i < units.length; i++) html += '<option>' + units[i] + '</option>';
+    from.innerHTML = html; to.innerHTML = html;
+    if (units.length > 1) to.selectedIndex = 1;
+}
+function convertUnits() {
+    var box = document.getElementById('cv-result'), val = document.getElementById('cv-value-out');
+    try {
+        var cat = document.getElementById('cv-category').value;
+        var v = parseFloat(document.getElementById('cv-value').value);
+        var from = document.getElementById('cv-from').value, to = document.getElementById('cv-to').value;
+        if (isNaN(v)) throw new Error('Введите число');
+        var r = v * unitsData[cat][from] / unitsData[cat][to];
+        box.className = 'result show success';
+        val.textContent = formatNumber(r) + ' ' + to;
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+function factorize() {
+    var box = document.getElementById('factor-result'), val = document.getElementById('factor-value');
+    try {
+        var n = parseInt(document.getElementById('factor-input').value);
+        if (isNaN(n) || n < 2) throw new Error('Число >= 2');
+        var orig = n, factors = {}, d = 2;
+        while (d*d <= n) { while (n % d === 0) { factors[d] = (factors[d]||0)+1; n /= d; } d++; }
+        if (n > 1) factors[n] = (factors[n]||0)+1;
+        var parts = [];
+        for (var p in factors) parts.push(factors[p] === 1 ? p : p + '^' + factors[p]);
+        var ans = parts.join(' * ');
+        box.className = 'result show success';
+        val.innerHTML = orig + ' = ' + ans;
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+function solvePowers() {
+    var box = document.getElementById('pw-result'), val = document.getElementById('pw-value');
+    try {
+        var op = document.getElementById('pw-op').value;
+        var a = parseFloat(document.getElementById('pw-a').value), b = parseFloat(document.getElementById('pw-b').value);
+        box.className = 'result show success';
+        if (op === 'simplify') {
+            if (a < 0) throw new Error('Отрицательное');
+            var outside = 1, inside = a;
+            for (var i = 2; i*i <= inside; i++) { while (inside % (i*i) === 0) { outside *= i; inside /= i*i; } }
+            val.innerHTML = outside === 1 ? 'sqrt(' + a + ')' : 'sqrt(' + a + ') = ' + outside + '*sqrt(' + inside + ')';
+        } else if (op === 'power') { val.textContent = formatNumber(Math.pow(a, b)); }
+        else { var r2 = a < 0 && b % 2 === 1 ? -Math.pow(-a, 1/b) : Math.pow(a, 1/b); val.textContent = formatNumber(r2); }
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+
+/* ГЕОМЕТРИЯ */
+var geoData = {
+    flat: {
+        pyth: { name: 'Пифагор', theory: '<b>c² = a² + b²</b>',
+            fields: [{ id: 'geo-a', label: 'a', def: 3 }, { id: 'geo-b', label: 'b', def: 4 }],
+            solve: function() { var a = +document.getElementById('geo-a').value, b = +document.getElementById('geo-b').value; return { result: 'c = ' + formatNumber(Math.sqrt(a*a + b*b)) }; }
+        },
+        rect: { name: 'Прямоугольник', theory: '<b>S = a·b</b>',
+            fields: [{ id: 'geo-w', label: 'a', def: 4 }, { id: 'geo-h', label: 'b', def: 6 }],
+            solve: function() { var w = +document.getElementById('geo-w').value, h = +document.getElementById('geo-h').value; return { result: 'S = ' + w*h + ', P = ' + 2*(w+h) }; }
+        }
+    },
+    triangle: {
+        area: { name: 'Площадь', theory: '<b>S = (a·h)/2</b>',
+            fields: [{ id: 'geo-base', label: 'a', def: 8 }, { id: 'geo-hh', label: 'h', def: 5 }],
+            solve: function() { var a = +document.getElementById('geo-base').value, h = +document.getElementById('geo-hh').value; return { result: 'S = ' + a*h/2 }; }
+        },
+        heron: { name: 'Герон', theory: '<b>S = √(p(p-a)(p-b)(p-c))</b>',
+            fields: [{ id: 'geo-h1', label: 'a', def: 3 }, { id: 'geo-h2', label: 'b', def: 4 }, { id: 'geo-h3', label: 'c', def: 5 }],
+            solve: function() {
+                var a = +document.getElementById('geo-h1').value, b = +document.getElementById('geo-h2').value, c = +document.getElementById('geo-h3').value;
+                if (a+b <= c || a+c <= b || b+c <= a) throw new Error('Треугольник не существует');
+                var p = (a+b+c)/2;
+                return { result: 'S = ' + formatNumber(Math.sqrt(p*(p-a)*(p-b)*(p-c))) };
+            }
+        }
+    },
+    circle: {
+        area: { name: 'Площадь и длина', theory: '<b>S = πR², C = 2πR</b>',
+            fields: [{ id: 'geo-r', label: 'R', def: 5 }],
+            solve: function() { var r = +document.getElementById('geo-r').value; return { result: 'S = ' + formatNumber(Math.PI*r*r) + ', C = ' + formatNumber(2*Math.PI*r) }; }
+        }
+    }
+};
+var currentGeoCat = 'flat';
+function fillGeoTypes() {
+    var cat = geoData[currentGeoCat];
+    var sel = document.getElementById('geo-type');
+    var html = '';
+    for (var k in cat) html += '<option value="' + k + '">' + cat[k].name + '</option>';
+    sel.innerHTML = html;
+    renderGeoFields();
+}
+function renderGeoFields() {
+    var cat = geoData[currentGeoCat];
+    var type = document.getElementById('geo-type').value;
+    var task = cat[type];
+    if (!task) return;
+    document.getElementById('geo-theory').innerHTML = task.theory;
+    var html = '';
+    for (var i = 0; i < task.fields.length; i++) {
+        var f = task.fields[i];
+        html += '<div class="field-block"><label>' + f.label + '</label><input type="number" id="' + f.id + '" value="' + f.def + '"></div>';
+    }
+    document.getElementById('geo-fields').innerHTML = html;
+}
+function solveGeometry() {
+    var box = document.getElementById('geo-result'), val = document.getElementById('geo-value');
+    try {
+        var cat = geoData[currentGeoCat];
+        var type = document.getElementById('geo-type').value;
+        var res = cat[type].solve();
+        box.className = 'result show success';
+        val.textContent = res.result;
+    } catch (e) {
+        box.className = 'result show error';
+        val.textContent = 'Ошибка: ' + e.message;
+    }
+}
+
+/* ТРЕНАЖЁР */
+var trainerState = { correct: 0, total: 0, streak: 0, level: 1, currentAnswer: null, started: false };
+function genProblem(level) {
+    var a, b, ans, text;
+    if (level === 1) {
+        a = Math.floor(Math.random()*15)+1; b = Math.floor(Math.random()*15)+1;
+        var op = Math.random() < 0.5 ? '+' : '-';
+        if (op === '-' && a < b) { var t = a; a = b; b = t; }
+        ans = op === '+' ? a+b : a-b; text = a + ' ' + op + ' ' + b;
+    } else if (level === 2) {
+        if (Math.random() < 0.5) { a = Math.floor(Math.random()*10)+2; b = Math.floor(Math.random()*10)+2; ans = a*b; text = a + ' * ' + b; }
+        else { b = Math.floor(Math.random()*9)+2; ans = Math.floor(Math.random()*10)+2; a = ans*b; text = a + ' / ' + b; }
+    } else if (level === 3) {
+        a = Math.floor(Math.random()*20)+5; b = Math.floor(Math.random()*10)+2; var c = Math.floor(Math.random()*10)+1; ans = a+b*c; text = a + ' + ' + b + ' * ' + c;
+    } else {
+        a = Math.floor(Math.random()*8)+2; b = Math.floor(Math.random()*3)+2; ans = Math.pow(a, b); text = a + '^' + b;
+    }
+    return { text: text, answer: ans };
+}
+function trainerStart() {
+    trainerState.started = true;
+    document.getElementById('tr-answer').disabled = false;
+    trainerNext();
+}
+function trainerNext() {
+    if (!trainerState.started) { trainerStart(); return; }
+    var p = genProblem(trainerState.level);
+    trainerState.currentAnswer = p.answer;
+    document.getElementById('tr-question').textContent = p.text + ' = ?';
+    document.getElementById('tr-answer').value = '';
+    document.getElementById('tr-answer').focus();
+    document.getElementById('tr-feedback').textContent = '';
+}
+function trainerCheck() {
+    if (!trainerState.started) return;
+    var v = parseFloat(document.getElementById('tr-answer').value.trim().replace(',', '.'));
+    if (isNaN(v)) return;
+    trainerState.total++;
+    var fb = document.getElementById('tr-feedback');
+    if (Math.abs(v - trainerState.currentAnswer) < 1e-6) {
+        trainerState.correct++; trainerState.streak++;
+        fb.textContent = 'Правильно!';
+        fb.className = 'trainer-feedback correct';
+        setTimeout(trainerNext, 800);
+    } else {
+        trainerState.streak = 0;
+        fb.textContent = 'Неверно. Ответ: ' + formatNumber(trainerState.currentAnswer);
+        fb.className = 'trainer-feedback wrong';
+    }
+    document.getElementById('tr-correct').textContent = trainerState.correct;
+    document.getElementById('tr-total').textContent = trainerState.total;
+    document.getElementById('tr-streak').textContent = trainerState.streak;
+}
+function trainerReset() {
+    trainerState = { correct: 0, total: 0, streak: 0, level: 1, currentAnswer: null, started: false };
+    document.getElementById('tr-correct').textContent = '0';
+    document.getElementById('tr-total').textContent = '0';
+    document.getElementById('tr-streak').textContent = '0';
+    document.getElementById('tr-question').textContent = 'Нажми "Начать"';
+    document.getElementById('tr-answer').value = '';
+    document.getElementById('tr-answer').disabled = true;
+    document.getElementById('tr-feedback').textContent = '';
+}
+function toggleNumpad() {
+    var c = document.getElementById('numpad-container');
+    c.style.display = c.style.display === 'none' ? 'block' : 'none';
+}
+
+/* ИНИЦИАЛИЗАЦИЯ */
+document.addEventListener('DOMContentLoaded', function() {
+    var tabBtns = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < tabBtns.length; i++) {
+        (function(btn) {
+            btn.addEventListener('click', function() {
+                var name = btn.getAttribute('data-tab');
+                var all = document.querySelectorAll('.tab-btn');
+                for (var j = 0; j < all.length; j++) all[j].classList.remove('active');
+                btn.classList.add('active');
+                var panels = document.querySelectorAll('.panel');
+                for (var k = 0; k < panels.length; k++) panels[k].classList.remove('active');
+                var target = document.getElementById('panel-' + name);
+                if (target) target.classList.add('active');
+            });
+        })(tabBtns[i]);
+    }
+    var tb = document.getElementById('theme-toggle');
+    if (tb) {
+        tb.addEventListener('click', function() {
+            document.body.classList.toggle('light');
+            tb.innerHTML = document.body.classList.contains('light') ? '&#9728;' : '&#127769;';
+            try { localStorage.setItem('mathsolver_theme', document.body.classList.contains('light') ? 'light' : 'dark'); } catch(e) {}
+        });
+        try { if (localStorage.getItem('mathsolver_theme') === 'light') { document.body.classList.add('light'); tb.innerHTML = '&#9728;'; } } catch(e) {}
+    }
+    var hb = document.getElementById('history-toggle');
+    if (hb) hb.addEventListener('click', function() { renderHistory(); document.getElementById('history-modal').classList.add('show'); });
+    var pb = document.getElementById('print-btn');
+    if (pb) pb.addEventListener('click', function() { window.print(); });
+    var hm = document.getElementById('history-modal');
+    if (hm) hm.addEventListener('click', function(e) { if (e.target === this) closeHistory(); });
+
+    var qc = ['+','-','*','/','(',')','.','^','sqrt(','pi'];
+    var qw = document.getElementById('quick-buttons');
+    if (qw) {
+        for (var q = 0; q < qc.length; q++) {
+            (function(ch) {
+                var b = document.createElement('button');
+                b.textContent = ch;
+                b.onclick = function() { var inp = document.getElementById('expr-input'); inp.value += ch; inp.focus(); };
+                qw.appendChild(b);
+            })(qc[q]);
+        }
+    }
+    var exEx = ['(2+3)*4','2^10','sqrt(144)','(15+5)/(4-2)','sin(pi/2)'];
+    var eb = document.getElementById('expr-examples');
+    if (eb) {
+        eb.innerHTML = 'Примеры: ';
+        for (var e = 0; e < exEx.length; e++) {
+            (function(ex) {
+                var btn = document.createElement('button');
+                btn.textContent = ex;
+                btn.onclick = function() { document.getElementById('expr-input').value = ex; solveExpression(); };
+                eb.appendChild(btn);
+                eb.appendChild(document.createTextNode(' '));
+            })(exEx[e]);
+        }
+    }
+    var ei = document.getElementById('expr-input');
+    if (ei) ei.addEventListener('keydown', function(e) { if (e.key === 'Enter') solveExpression(); });
+
+    var npButtons = [
+        { t: '7', v: '7' }, { t: '8', v: '8' }, { t: '9', v: '9' }, { t: '/', v: '/', cls: 'op' },
+        { t: '4', v: '4' }, { t: '5', v: '5' }, { t: '6', v: '6' }, { t: '*', v: '*', cls: 'op' },
+        { t: '1', v: '1' }, { t: '2', v: '2' }, { t: '3', v: '3' }, { t: '-', v: '-', cls: 'op' },
+        { t: '0', v: '0' }, { t: '.', v: '.' }, { t: '=', action: solveExpression, cls: 'eq' }, { t: '+', v: '+', cls: 'op' },
+        { t: 'C', action: function() { document.getElementById('expr-input').value = ''; }, cls: 'clr' },
+        { t: '<', action: function() { var i = document.getElementById('expr-input'); i.value = i.value.slice(0, -1); }, cls: 'clr' },
+        { t: '(', v: '(' }, { t: ')', v: ')' }
+    ];
+    var np = document.getElementById('numpad');
+    if (np) {
+        for (var n = 0; n < npButtons.length; n++) {
+            (function(b) {
+                var btn = document.createElement('button');
+                btn.textContent = b.t;
+                if (b.cls) btn.className = b.cls;
+                btn.onclick = function() {
+                    if (b.action) { b.action(); return; }
+                    var inp = document.getElementById('expr-input');
+                    inp.value += b.v;
+                    inp.focus();
+                };
+                np.appendChild(btn);
+            })(npButtons[n]);
+        }
+    }
+
+    var pt = document.getElementById('p-type');
+    if (pt) pt.addEventListener('change', function() {
+        var labels = { of: ['Процент (%)', 'Число'], what: ['Число X', 'Число Y'], change: ['Было X', 'Стало Y'] };
+        var p = labels[this.value];
+        document.getElementById('p-label-1').textContent = p[0];
+        document.getElementById('p-label-2').textContent = p[1];
+    });
+    var prt = document.getElementById('pr-type');
+    if (prt) prt.addEventListener('change', function() { document.getElementById('pr-d-label').textContent = this.value === 'arith' ? 'Разность (d)' : 'Знаменатель (q)'; });
+    var po = document.getElementById('poly-op');
+    if (po) po.addEventListener('change', function() {
+        var labels = { add: '-', sub: '-', mul: '-', div: '-', pow: 'Степень n', value: 'Значение x', derivative: '-' };
+        document.getElementById('poly-extra-label').textContent = labels[this.value] || '-';
+    });
+    var rfo = document.getElementById('rf-op');
+    if (rfo) rfo.addEventListener('change', function() {
+        var v = this.value;
+        document.getElementById('rf-second-frac').style.display = (v === '+' || v === '-' || v === '*' || v === '/') ? 'grid' : 'none';
+        var labels = { '+': '-', '-': '-', '*': '-', '/': '-', simplify: '-', eval: 'Значение x' };
+        document.getElementById('rf-extra-label').textContent = labels[v] || '-';
+    });
+    var catBtns = document.querySelectorAll('.geo-cat-btn');
+    for (var cb = 0; cb < catBtns.length; cb++) {
+        (function(b) {
+            b.addEventListener('click', function() {
+                var all = document.querySelectorAll('.geo-cat-btn');
+                for (var z = 0; z < all.length; z++) all[z].classList.remove('active');
+                b.classList.add('active');
+                currentGeoCat = b.getAttribute('data-cat');
+                fillGeoTypes();
+            });
+        })(catBtns[cb]);
+    }
+    fillGeoTypes();
+    var gt = document.getElementById('geo-type');
+    if (gt) gt.addEventListener('change', renderGeoFields);
+    var cvc = document.getElementById('cv-category');
+    if (cvc) cvc.addEventListener('change', fillUnits);
+    fillUnits();
+    var levels = document.querySelectorAll('.trainer-levels button');
+    for (var l = 0; l < levels.length; l++) {
+        (function(btn) {
+            btn.addEventListener('click', function() {
+                var all = document.querySelectorAll('.trainer-levels button');
+                for (var x = 0; x < all.length; x++) all[x].classList.remove('active');
+                btn.classList.add('active');
+                trainerState.level = parseInt(btn.getAttribute('data-level'));
+            });
+        })(levels[l]);
+    }
+    var tra = document.getElementById('tr-answer');
+    if (tra) tra.addEventListener('keydown', function(e) { if (e.key === 'Enter') trainerCheck(); });
+    initComments();
+});
+</script>
+</body>
+</html>
